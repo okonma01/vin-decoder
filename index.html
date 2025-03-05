@@ -125,10 +125,16 @@
 
       window.addEventListener("DOMContentLoaded", async () => {
         let vin = prompt("Enter a valid VIN number");
+        
+        // Check if user clicked Cancel (null) vs. empty string
+        if (vin === null) {
+          alert("VIN entry cancelled.");
+          return;
+        }
 
         while (!vinDecodesProperly(vin)) {
-            vin = prompt("Invalid VIN. Please enter a valid VIN number");
-          if (!vin) {
+          vin = prompt("Invalid VIN. Please enter a valid VIN number");
+          if (vin === null) {
             // in case user cancels
             alert("VIN entry cancelled.");
             return;
