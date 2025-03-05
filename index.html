@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>VIN Decoder</title>
+    <style>
+      body {
+        margin: 0;
+        padding: 0;
+        height: 100vh;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        background: linear-gradient(to right, #b6e0e6, #fffc);
+      }
+      .container {
+        padding: 3em;
+        display: flex;
+        align-items: center;
+      }
+      .inner-container {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+      }
+      .car-icons {
+        flex: 0.8;
+        display: flex;
+        align-items: end;
+        flex-direction: column;
+        margin-right: 2.5rem;
+      }
+      .car-icons img {
+        width: 40%;
+        margin: -0.5rem 0;
+        /* margin-bottom: 0.5rem; */
+      }
+      .text {
+        font-size: 350%;
+        margin: 0;
+        font-family: "Cambria", sans-serif;
+        color: #333;
+      }
+
+      @media (max-width: 768px) {
+        .car-icons img {
+          width: 40%;
+          /* margin-bottom: 0.5rem; */
+        }
+
+        .text {
+          font-size: 300%;
+        }
+      }
+
+      @media (max-width: 480px) {
+        .car-icons {
+          margin-right: 1em;
+        }
+
+        .car-icons img {
+          width: 90%;
+          /* margin-bottom: 0.5rem; */
+        }
+
+        .text {
+          font-size: 220%;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <div class="car-icons">
+        <img src="public/car1.png" alt="Car 1" />
+        <img src="public/car2.png" alt="Car 2" />
+        <img src="public/car3.png" alt="Car 3" />
+      </div>
+      <div class="inner-container">
+        <p class="text">VIN</p>
+        <p class="text">Decoder</p>
+      </div>
+    </div>
+    <!-- Include the NHTSA API Wrapper via jsDelivr CDN -->
+    <script type="module">
+      // import only the DecodeVinValues function from the package
+      import { DecodeVinValues } from "https://cdn.jsdelivr.net/npm/@shaggytools/nhtsa-api-wrapper/+esm";
+
+      function vinDecodesProperly(vin) {
+        // Check if the input is a string.
+        if (typeof vin !== "string") {
+          return false;
+        }
+
+        // Convert to uppercase and trim whitespace.
+        vin = vin.toUpperCase().trim();
+
+        // VIN must be exactly 17 characters long.
+        if (vin.length !== 17) {
+          return false;
+        }
+
+        // Regex pattern (simplified) to check the structure of the VIN.
+        // NOTE: VINs cannot contain the letters I, O, or Q.
+        const vinPattern =
+          /^[A-HJ-NPR-Z0-9]{3}[A-HJ-NPR-Z0-9]{5}[0-9X][A-HJ-NPR-Z0-9][A-HJ-NPR-Z0-9][0-9A-HJ-NPR-Z]{6}$/;
+        if (!vinPattern.test(vin)) {
+          return false;
+        }
+
+        // Positions 15-17 (indexes 14 to 16) must be numeric.
+        if (!/^\d+$/.test(vin.substring(14, 17))) {
+          return false;
+        }
+
+        // Position 14 (index 13) must be numeric unless it is '9'.
+        if (vin[13] !== "9" && !/^\d$/.test(vin[13])) {
+          return false;
+        }
+
+        return true;
+      }
+
+      window.addEventListener("load", async () => {
+        let vin = prompt("Enter a valid VIN number");
+
+        if (!vin) {
+          // in case user cancels
+          return;
+        }
+        while (!vinDecodesProperly(vin)) {
+            vin = prompt("Invalid VIN. Please enter a valid VIN number");
+          if (!vin) {
+            // in case user cancels
+            alert("VIN entry cancelled.");
+            return;
+          }
+        }
+
+        try {
+          // Use the imported function directly.
+          const response = await DecodeVinValues(vin);
+          const year = response.Results[0].ModelYear;
+          const make = response.Results[0].Make;
+          const model = response.Results[0].Model;
+          const vehicleSummary = `${year} ${make} ${model}`;
+          console.log(vehicleSummary);
+          alert(`This is a ${vehicleSummary}`);
+
+          // Ask user if they want to decode another VIN
+          if (confirm("Enter another VIN?")) {
+            location.reload(); // Reloads the page
+          }
+        } catch (error) {
+          console.error("Error decoding VIN:", error);
+          alert("There was an error decoding the VIN. Please try again.");
+        }
+      });
+    </script>
+  </body>
+</html>
