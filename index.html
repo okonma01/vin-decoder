@@ -126,10 +126,6 @@
       window.addEventListener("DOMContentLoaded", async () => {
         let vin = prompt("Enter a valid VIN number");
 
-        if (!vin) {
-          // in case user cancels
-          return;
-        }
         while (!vinDecodesProperly(vin)) {
             vin = prompt("Invalid VIN. Please enter a valid VIN number");
           if (!vin) {
